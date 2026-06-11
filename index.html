@@ -629,7 +629,8 @@ function startRealtime(){
 async function showApp(user){
   $("#login").classList.add("hidden");
   $("#appRoot").classList.remove("hidden");
-  $("#whoami").textContent="Вы вошли как "+(user.email||"");
+  $("#whoami").textContent = (user&&user.email) ? ("Вы вошли как "+user.email) : "Общий доступ (без входа)";
+  $("#logoutLink").style.display = (user&&user.email) ? "" : "none";
   await loadAll();
   startRealtime();
 }
@@ -650,9 +651,12 @@ $("#loginBtn").onclick=async()=>{
 $("#loginEmail").onkeydown=e=>{ if(e.key==="Enter")$("#loginBtn").click(); };
 
 async function init(){
-  const { data:{ session } } = await sb.auth.getSession();
-  if(session) showApp(session.user); else showLogin();
-  sb.auth.onAuthStateChange((_e,sess)=>{ if(sess) showApp(sess.user); else showLogin(); });
+  // Вход отключён — общий доступ по ссылке.
+  // Чтобы вернуть вход по email, замените тело функции на блок ниже:
+  //   const { data:{ session } } = await sb.auth.getSession();
+  //   if(session) showApp(session.user); else showLogin();
+  //   sb.auth.onAuthStateChange((_e,sess)=>{ if(sess) showApp(sess.user); else showLogin(); });
+  showApp(null);
 }
 init();
 </script>
