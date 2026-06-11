@@ -326,7 +326,7 @@ function renderSidebar(){
   cl.querySelector('[data-addclient]').onclick=()=>openClient(null);
 
   const ms=$("#meSelect");
-  ms.innerHTML=Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${state.me===k?"selected":""}>${v.name} — ${v.role}</option>`).join("");
+  ms.innerHTML=Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${state.me===k?"selected":""}>${v.name}</option>`).join("");
   ms.onchange=()=>{state.me=ms.value;render();};
 
   $("#nav").querySelectorAll("button").forEach(b=>{
