@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agency Hub</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --txt:#e7e9ee; --muted:#9aa3b2; --accent:#6c8cff; --accent2:#8a6cff;
+    --green:#3ecf8e; --amber:#ffba49; --red:#ff5d6c; --blue:#4cb4ff;
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--txt);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif}
+  button{font-family:inherit;cursor:pointer}
+  a{color:var(--accent)}
+  .app{display:grid;grid-template-columns:230px 1fr;height:100vh}
+  /* Login */
+  #login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
+  #login .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:34px 30px;width:360px;max-width:92vw;box-shadow:var(--shadow)}
+  #login .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;margin-bottom:6px}
+  #login .logo .dot{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  #login p{color:var(--muted);font-size:13px;margin:8px 0 18px}
+  #login input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 13px;font:inherit;margin-bottom:12px}
+  #login button{width:100%;background:var(--accent);border:0;color:#0b1020;font-weight:700;padding:11px;border-radius:10px}
+  #login .msg{margin-top:14px;font-size:13px;color:var(--green);min-height:18px}
+  #login .msg.err{color:var(--red)}
+  .hidden{display:none!important}
+  /* Sidebar */
+  .side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px;padding:16px 12px;overflow:auto}
+  .brand{display:flex;align-items:center;gap:9px;padding:4px 8px 14px;font-weight:700;font-size:16px}
+  .brand .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .nav{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+  .nav button{display:flex;align-items:center;gap:10px;background:transparent;border:0;color:var(--muted);
+    padding:9px 11px;border-radius:10px;text-align:left;font-size:14px;width:100%}
+  .nav button.active{background:var(--panel2);color:var(--txt)}
+  .nav button:hover{color:var(--txt)}
+  .nav .ic{width:18px;text-align:center}
+  .side h4{margin:14px 8px 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .client-row{display:flex;align-items:center;gap:9px;border-radius:10px;cursor:pointer;padding:8px 11px}
+  .client-row:hover{background:var(--panel2)}
+  .client-row.active{background:var(--panel2)}
+  .client-row .cname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e7e9ee;font-size:14px}
+  .client-row .client-edit{background:transparent;border:0;color:var(--muted);padding:2px 5px;font-size:10px;line-height:1;border-radius:7px;opacity:.5;flex:0 0 auto}
+  .client-row:hover .client-edit{opacity:1}
+  .client-row .client-edit:hover{color:var(--txt);background:var(--bg)}
+  .allbtn{display:flex;align-items:center;gap:9px;background:transparent;border:0;color:var(--txt);padding:8px 11px;border-radius:10px;width:100%;text-align:left}
+  .allbtn.active{background:var(--panel2)}
+  .addclient{margin-top:6px;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:8px;font-size:13px;width:100%}
+  .addclient:hover{color:var(--txt);border-color:var(--accent)}
+  .swatch{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .side .foot{margin-top:auto;color:var(--muted);font-size:11px;padding:10px 8px;border-top:1px solid var(--line)}
+  .side .foot a{cursor:pointer}
+  /* Main */
+  .main{display:flex;flex-direction:column;overflow:hidden}
+  .topbar{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .topbar h1{font-size:17px;margin:0;font-weight:650}
+  .spacer{flex:1}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:8px 13px;border-radius:10px;font-size:13px}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#0b1020;font-weight:600}
+  .btn.ghost{background:transparent}
+  .content{padding:20px 22px;overflow:auto;flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 9px;border-radius:999px;font-weight:600}
+  .who{font-size:11px;color:var(--muted)}
+  .banner{background:rgba(255,93,108,.12);border:1px solid var(--red);color:#ffd0d5;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+  /* status colors */
+  .st-plan{background:rgba(154,163,178,.18);color:#cdd3de}
+  .st-work{background:rgba(76,180,255,.16);color:var(--blue)}
+  .st-ready{background:rgba(255,186,73,.16);color:var(--amber)}
+  .st-done{background:rgba(62,207,142,.16);color:var(--green)}
+  .st-late{background:rgba(255,93,108,.18);color:var(--red)}
+  /* Calendar */
+  .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+  .cal-head div{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;text-align:center}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .cell{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:118px;padding:8px;display:flex;flex-direction:column;gap:6px}
+  .cell.out{opacity:.4}
+  .cell.today{border-color:var(--accent)}
+  .cell .d{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+  .cell.today .d{color:var(--accent);font-weight:700}
+  .chip{display:flex;align-items:stretch;gap:6px;background:var(--panel2);border:1px solid var(--line);border-left-width:4px;
+    border-radius:8px;padding:5px 7px;font-size:12px;cursor:pointer;overflow:hidden}
+  .chip:hover{border-color:var(--accent)}
+  .chip .t{display:flex;flex-direction:column;min-width:0;flex:1}
+  .chip .ctag{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip .cdot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+  .chip .ttl2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;margin:1px 0;color:#e7e9ee}
+  .chip .type{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .chip .sdot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+  .addmini{margin-top:auto;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:4px;font-size:12px}
+  .addmini:hover{color:var(--txt);border-color:var(--accent)}
+  /* Board */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:200px}
+  .col h3{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+  .col h3 .cnt{color:var(--muted);font-weight:500}
+  .card{background:var(--panel2);border:1px solid var(--line);border-left-width:3px;border-radius:10px;padding:10px;margin-bottom:9px;cursor:pointer}
+  .card:hover{border-color:var(--accent)}
+  .card .ttl{font-size:13px;font-weight:600;margin-bottom:6px}
+  .card .meta{display:flex;justify-content:space-between;align-items:center;gap:6px}
+  /* My day */
+  .tlist{display:flex;flex-direction:column;gap:10px;max-width:780px}
+  .trow{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+  .trow:hover{border-color:var(--accent)}
+  .trow .cb{width:18px;height:18px;border-radius:6px;border:2px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;color:#0b1020}
+  .trow.done .cb{background:var(--green);border-color:var(--green)}
+  .trow.done .ttl{text-decoration:line-through;color:var(--muted)}
+  .trow .body{flex:1}
+  .trow .ttl{font-weight:600}
+  .trow .sub{font-size:12px;color:var(--muted)}
+  /* Shoots */
+  .shoot{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+  .shoot .date{text-align:center;min-width:64px}
+  .shoot .date .day{font-size:24px;font-weight:700}
+  .shoot .date .mon{font-size:11px;color:var(--muted);text-transform:uppercase}
+  /* Drawer */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:30}
+  .overlay.open{display:block}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:480px;max-width:94vw;background:var(--panel);border-left:1px solid var(--line);
+    box-shadow:var(--shadow);transform:translateX(100%);transition:.22s;z-index:40;display:flex;flex-direction:column}
+  .drawer.open{transform:none}
+  .drawer header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .drawer header input.title{flex:1;background:transparent;border:0;color:var(--txt);font-size:16px;font-weight:650}
+  .drawer header .x{background:transparent;border:0;color:var(--muted);font-size:20px}
+  .drawer .body{padding:16px 18px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+  .fld label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px}
+  .fld input,.fld select,.fld textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:9px 11px;font:inherit}
+  .fld textarea{min-height:84px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .subtask{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px}
+  .subtask .cb{width:18px;height:18px;border-radius:6px;border:2px solid var(--line);flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#0b1020}
+  .subtask.done .cb{background:var(--green);border-color:var(--green)}
+  .subtask.done .nm{text-decoration:line-through;color:var(--muted)}
+  .subtask .nm{flex:1}
+  .files{display:flex;flex-direction:column;gap:7px}
+  .file{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px}
+  .file .ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--bg);font-size:13px}
+  .file .nm{flex:1;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .file .nm.link:hover{color:var(--accent);text-decoration:underline}
+  .file .rm{color:var(--muted);background:transparent;border:0;font-size:16px}
+  .drawer footer{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+  .seg{display:flex;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:4px}
+  .seg button{flex:1;background:transparent;border:0;color:var(--muted);padding:6px;border-radius:7px;font-size:12px}
+  .empty{color:var(--muted);text-align:center;padding:50px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div id="login">
+  <div class="box">
+    <div class="logo"><div class="dot"></div> Agency Hub</div>
+    <p>Введите рабочий email — пришлём ссылку для входа.</p>
+    <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+    <button id="loginBtn">Получить ссылку для входа</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app hidden" id="appRoot">
+  <aside class="side">
+    <div class="brand"><div class="dot"></div> Agency Hub</div>
+    <div class="nav" id="nav">
+      <button data-view="calendar" class="active"><span class="ic">🗓️</span> Контент-план</button>
+      <button data-view="board"><span class="ic">📋</span> Доска задач</button>
+      <button data-view="myday"><span class="ic">✅</span> Мои задачи</button>
+      <button data-view="shoots"><span class="ic">🎬</span> Съёмки</button>
+    </div>
+    <h4>Клиенты</h4>
+    <div id="clientList"></div>
+    <h4>Я захожу как</h4>
+    <div class="fld" style="padding:0 6px"><select id="meSelect"></select></div>
+    <div class="foot">
+      <div id="whoami" style="margin-bottom:6px"></div>
+      <a id="logoutLink">Выйти</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1 id="viewTitle">Контент-план</h1>
+      <div id="calNav" class="seg" style="margin-left:8px">
+        <button id="prevM">‹</button>
+        <button id="curM" style="min-width:150px"></button>
+        <button id="nextM">›</button>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn primary" id="addBtn">+ Публикация</button>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<!-- Drawer -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <header>
+    <input class="title" id="dTitle" placeholder="Название публикации">
+    <button class="x" id="dClose">✕</button>
+  </header>
+  <div class="body" id="dBody"></div>
+  <footer>
+    <button class="btn ghost" id="dDelete">Удалить</button>
+    <div class="spacer"></div>
+    <span class="who" id="dSaved" style="margin-right:6px">✓ Сохранено</span>
+    <button class="btn primary" id="dDone">Готово</button>
+  </footer>
+</aside>
+<input type="file" id="fileInput" style="display:none">
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+/* ===== Supabase ===== */
+const SUPABASE_URL = "https://lecmubchttplcdnllzfz.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlY211YmNodHRwbGNkbmxsemZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExOTQxNDAsImV4cCI6MjA5Njc3MDE0MH0.NKMUiD62pCIb1DYbCpfMLGoQsdL6p7s87cAAxOxRkfg";
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ===== Constants ===== */
+const ROLES = {
+  owner:   {name:"Никита",  role:"Руководитель"},
+  partner: {name:"Полина",  role:"Контент / тексты / ТЗ"},
+  design:  {name:"Илья — дизайнер", role:"Дизайн / обложки"},
+  reels:   {name:"Агата — рилсмейкер", role:"Съёмка / монтаж"},
+  publish: {name:"Агата — выкладчик", role:"Выкладка контента"},
+};
+const STATUS = {plan:{label:"План"},work:{label:"В работе"},ready:{label:"Готово"},done:{label:"Опубликовано"}};
+const TYPES = {post:"Пост", reel:"Рилс", story:"Истории"};
+
+/* ===== State ===== */
+let db = {clients:[], posts:[], shoots:[]};
+let state = {view:"calendar", client:"all", me:"owner", calDate:new Date(), editing:null, editKind:null};
+let errMsg = "";
+
+/* ===== Helpers ===== */
+const $=s=>document.querySelector(s);
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const todayStr=()=>ymd(new Date());
+const clientById=id=>db.clients.find(c=>c.id===id)||{name:"—",color:"#888"};
+function effStatus(p){ if(p.status!=="done" && p.date<todayStr()) return "late"; return p.status; }
+const MONTHS=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const WD=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+function filteredPosts(){ return db.posts.filter(p=> state.client==="all" || p.client===state.client); }
+
+/* ===== Row mappers (app object <-> db columns) ===== */
+const postToRow=p=>({id:p.id,client_id:p.client,type:p.type,title:p.title,date:p.date,time:p.time,status:p.status,body:p.text,tasks:p.tasks,files:p.files});
+const rowToPost=r=>({id:r.id,client:r.client_id,type:r.type,title:r.title||"",date:r.date,time:r.time,status:r.status||"plan",text:r.body||"",tasks:r.tasks||[],files:r.files||[]});
+const clientToRow=c=>({id:c.id,name:c.name,color:c.color,note:c.note});
+const rowToClient=r=>({id:r.id,name:r.name,color:r.color,note:r.note});
+const shootToRow=s=>({id:s.id,client_id:s.client,title:s.title,date:s.date,time:s.time,place:s.place,note:s.note});
+const rowToShoot=r=>({id:r.id,client:r.client_id,title:r.title||"",date:r.date,time:r.time,place:r.place,note:r.note});
+
+/* ===== DB operations ===== */
+function flash(ok){ const el=$("#dSaved"); if(!el)return; el.textContent= ok?"✓ Сохранено":"⚠ Ошибка сохранения"; el.style.color= ok?"var(--green)":"var(--red)"; }
+async function savePost(p){ const {error}=await sb.from('posts').upsert(postToRow(p)); flash(!error); if(error)console.error(error); }
+async function saveClient(c){ const {error}=await sb.from('clients').upsert(clientToRow(c)); flash(!error); if(error)console.error(error); }
+async function saveShoot(s){ const {error}=await sb.from('shoots').upsert(shootToRow(s)); flash(!error); if(error)console.error(error); }
+async function delPost(id){ await sb.from('posts').delete().eq('id',id); }
+async function delClient(id){ await sb.from('clients').delete().eq('id',id); }
+async function delShoot(id){ await sb.from('shoots').delete().eq('id',id); }
+
+async function loadAll(){
+  errMsg="";
+  const [c,p,s]=await Promise.all([
+    sb.from('clients').select('*').order('created_at',{ascending:true}),
+    sb.from('posts').select('*'),
+    sb.from('shoots').select('*'),
+  ]);
+  if(c.error||p.error||s.error){
+    errMsg = "Не удалось загрузить данные. Проверьте, что выполнены SQL-шаги (таблицы + политики RLS). Подробности в консоли (F12).";
+    console.error(c.error||p.error||s.error);
+    render(); return;
+  }
+  db.clients=(c.data||[]).map(rowToClient);
+  db.posts=(p.data||[]).map(rowToPost);
+  db.shoots=(s.data||[]).map(rowToShoot);
+  if(db.clients.length===0 && db.posts.length===0){ await seedDemo(); return; }
+  render();
+}
+let reloadTimer=null;
+function scheduleReload(){ clearTimeout(reloadTimer); reloadTimer=setTimeout(loadAll, 350); }
+
+/* ===== Demo seed (only when DB empty) ===== */
+async function seedDemo(){
+  const d=new Date(), Y=d.getFullYear(), M=d.getMonth(), t=n=>ymd(new Date(Y,M,n));
+  const clients=[{id:"c1",name:"Cafe Mira",color:"#6c8cff"},{id:"c2",name:"FitStudioPRO",color:"#3ecf8e"}];
+  const posts=[
+    {id:"p1",client:"c1",type:"reel",title:"Рилс: новое меню завтраков",date:t(d.getDate()),time:"12:00",status:"work",text:"Хук: «3 завтрака, ради которых стоит проснуться».",tasks:[{r:"partner",n:"Сценарий и текст",done:true},{r:"reels",n:"Съёмка + монтаж",done:false},{r:"design",n:"Обложка",done:false},{r:"publish",n:"Выкладка в 12:00",done:false}],files:[]},
+    {id:"p2",client:"c1",type:"story",title:"Истории: за кадром кухни",date:t(d.getDate()),time:"18:00",status:"plan",text:"3 истории: процесс готовки, опрос, ссылка на бронь.",tasks:[{r:"partner",n:"Текст для опроса",done:true},{r:"reels",n:"Снять процесс",done:false},{r:"publish",n:"Выложить вечером",done:false}],files:[]},
+    {id:"p3",client:"c2",type:"post",title:"Пост: разбор техники приседа",date:t(d.getDate()-1),time:"10:00",status:"plan",text:"Карусель 5 слайдов: ошибки в приседе.",tasks:[{r:"partner",n:"Текст карусели",done:true},{r:"design",n:"Дизайн 5 слайдов",done:false},{r:"publish",n:"Выкладка",done:false}],files:[]},
+    {id:"p4",client:"c2",type:"reel",title:"Рилс: тренировка дня",date:t(d.getDate()+1),time:"19:00",status:"plan",text:"Динамичный монтаж 3 упражнений.",tasks:[{r:"partner",n:"ТЗ и текст",done:false},{r:"reels",n:"Съёмка зала",done:false},{r:"reels",n:"Монтаж",done:false},{r:"publish",n:"Выкладка в 19:00",done:false}],files:[]},
+    {id:"p5",client:"c1",type:"post",title:"Пост: акция выходного дня",date:t(d.getDate()+3),time:"11:00",status:"plan",text:"Анонс скидки −20%.",tasks:[{r:"partner",n:"Текст оффера",done:false},{r:"design",n:"Баннер акции",done:false},{r:"publish",n:"Выкладка",done:false}],files:[]},
+  ];
+  const shoots=[
+    {id:"s1",client:"c1",title:"Съёмка контента на неделю",date:t(d.getDate()+1),time:"10:00",place:"Cafe Mira, зал",note:"Завтраки, процесс кухни, 4 рилса"},
+    {id:"s2",client:"c2",title:"Съёмка тренировок",date:t(d.getDate()+4),time:"14:00",place:"FitStudioPRO",note:"3 рилса + сторис, отзыв клиента"},
+  ];
+  await sb.from('clients').insert(clients.map(clientToRow));
+  await sb.from('posts').insert(posts.map(postToRow));
+  await sb.from('shoots').insert(shoots.map(shootToRow));
+  await loadAll();
+}
+
+/* ===== Sidebar ===== */
+function renderSidebar(){
+  const cl=$("#clientList");
+  let html=`<button class="allbtn ${state.client==="all"?"active":""}" data-all="1"><span class="swatch" style="background:linear-gradient(135deg,#6c8cff,#8a6cff)"></span> Все клиенты</button>`;
+  html+=db.clients.map(c=>`
+    <div class="client-row ${state.client===c.id?"active":""}" data-c="${c.id}">
+      <span class="swatch" style="background:${c.color}"></span>
+      <span class="cname" style="color:#e7e9ee">${(c.name&&String(c.name).trim())||"Без названия"}</span>
+      <button type="button" class="client-edit" data-edit="${c.id}" title="Изменить клиента">✎</button>
+    </div>`).join("");
+  html+=`<button class="addclient" data-addclient="1">+ Добавить клиента</button>`;
+  cl.innerHTML=html;
+  cl.querySelector('[data-all]').onclick=()=>{state.client="all";render();};
+  cl.querySelectorAll('.client-row[data-c]').forEach(row=>row.onclick=()=>{state.client=row.dataset.c;render();});
+  cl.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openClient(b.dataset.edit);});
+  cl.querySelector('[data-addclient]').onclick=()=>openClient(null);
+
+  const ms=$("#meSelect");
+  ms.innerHTML=Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${state.me===k?"selected":""}>${v.name} — ${v.role}</option>`).join("");
+  ms.onchange=()=>{state.me=ms.value;render();};
+
+  $("#nav").querySelectorAll("button").forEach(b=>{
+    b.classList.toggle("active",b.dataset.view===state.view);
+    b.onclick=()=>{state.view=b.dataset.view;render();};
+  });
+}
+
+/* ===== Render ===== */
+function render(){
+  renderSidebar();
+  const titles={calendar:"Контент-план",board:"Доска задач",myday:"Мои задачи на сегодня",shoots:"Съёмки"};
+  $("#viewTitle").textContent=titles[state.view];
+  $("#calNav").classList.toggle("hidden",state.view!=="calendar");
+  $("#addBtn").textContent = state.view==="shoots" ? "+ Съёмка" : "+ Публикация";
+  if(state.view==="calendar") renderCalendar();
+  if(state.view==="board") renderBoard();
+  if(state.view==="myday") renderMyDay();
+  if(state.view==="shoots") renderShoots();
+}
+function bannerHtml(){ return errMsg?`<div class="banner">${errMsg}</div>`:""; }
+
+function renderCalendar(){
+  const d=state.calDate, Y=d.getFullYear(), M=d.getMonth();
+  $("#curM").textContent=`${MONTHS[M]} ${Y}`;
+  const first=new Date(Y,M,1); let start=(first.getDay()+6)%7;
+  const daysInM=new Date(Y,M+1,0).getDate();
+  const prevDays=new Date(Y,M,0).getDate();
+  let cells=[];
+  for(let i=0;i<start;i++) cells.push({n:prevDays-start+1+i,out:true,date:null});
+  for(let i=1;i<=daysInM;i++) cells.push({n:i,out:false,date:ymd(new Date(Y,M,i))});
+  let tail=1; while(cells.length<42){cells.push({n:tail++,out:true,date:null});}
+  const posts=filteredPosts();
+  let html=bannerHtml()+`<div class="legend">
+     <span><span class="pill st-plan">План</span></span><span><span class="pill st-work">В работе</span></span>
+     <span><span class="pill st-ready">Готово</span></span><span><span class="pill st-done">Опубликовано</span></span>
+     <span><span class="pill st-late">Опоздали</span></span></div>`;
+  html+=`<div class="cal-head">${WD.map(w=>`<div>${w}</div>`).join("")}</div><div class="cal">`;
+  cells.forEach(c=>{
+    const isToday=c.date===todayStr();
+    const dayPosts=c.date?posts.filter(p=>p.date===c.date):[];
+    html+=`<div class="cell ${c.out?"out":""} ${isToday?"today":""}"><div class="d"><span>${c.n}</span>${dayPosts.length?`<span>${dayPosts.length}</span>`:""}</div>`;
+    dayPosts.forEach(p=>{
+      const cli=clientById(p.client), e=effStatus(p);
+      const scol={plan:'#9aa3b2',work:'#4cb4ff',ready:'#ffba49',done:'#3ecf8e',late:'#ff5d6c'}[e];
+      const slab={plan:'План',work:'В работе',ready:'Готово',done:'Опубликовано',late:'Опоздали'}[e];
+      html+=`<div class="chip" style="border-left-color:${scol}" data-id="${p.id}" title="${cli.name} — ${slab}">
+        <div class="t"><div class="ctag"><span class="cdot" style="background:${cli.color}"></span>${cli.name}</div>
+        <div class="ttl2">${p.title||"Без названия"}</div>
+        <div class="type"><span class="sdot" style="background:${scol}"></span>${TYPES[p.type]} · ${p.time} · ${slab}</div></div></div>`;
+    });
+    if(c.date&&!c.out) html+=`<button class="addmini" data-add="${c.date}">+ добавить</button>`;
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  $("#content").innerHTML=html;
+  $("#content").querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>openDrawer(ch.dataset.id));
+  $("#content").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>openDrawer(null,b.dataset.add));
+}
+
+function renderBoard(){
+  const cols=[["plan","План"],["work","В работе"],["ready","Готово"],["done","Опубликовано"]];
+  const posts=filteredPosts();
+  let html=bannerHtml()+`<div class="board">`;
+  cols.forEach(([k,label])=>{
+    const items=posts.filter(p=>p.status===k);
+    html+=`<div class="col"><h3>${label} <span class="cnt">${items.length}</span></h3>`;
+    items.forEach(p=>{
+      const cli=clientById(p.client), dueLate=effStatus(p)==="late";
+      html+=`<div class="card" style="border-left-color:${cli.color}" data-id="${p.id}"><div class="ttl">${p.title||"Без названия"}</div>
+        <div class="meta"><span class="who">${cli.name} · ${TYPES[p.type]} · ${p.date?p.date.slice(8)+'.'+p.date.slice(5,7):''}</span>
+        ${dueLate?`<span class="pill st-late">Опоздали</span>`:""}</div></div>`;
+    });
+    if(!items.length) html+=`<div class="who" style="padding:8px">Пусто</div>`;
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  $("#content").innerHTML=html;
+  $("#content").querySelectorAll(".card").forEach(c=>c.onclick=()=>openDrawer(c.dataset.id));
+}
+
+function renderMyDay(){
+  const posts=filteredPosts();
+  let rows=[];
+  posts.forEach(p=>p.tasks.forEach((t,i)=>{ if(t.r===state.me) rows.push({p,t,i}); }));
+  rows.sort((a,b)=>(a.p.date||"").localeCompare(b.p.date||""));
+  const todays=rows.filter(r=>(r.p.date||"")<=todayStr());
+  const upcoming=rows.filter(r=>(r.p.date||"")>todayStr());
+  const row=r=>{
+    const cli=clientById(r.p.client), late=(r.p.date||"")<todayStr()&&!r.t.done;
+    return `<div class="trow ${r.t.done?"done":""}" data-id="${r.p.id}"><div class="cb" data-toggle="${r.p.id}:${r.i}">${r.t.done?"✓":""}</div>
+      <div class="body"><div class="ttl">${r.t.n}</div>
+      <div class="sub"><span class="swatch" style="display:inline-block;background:${cli.color}"></span> ${cli.name} · ${r.p.title} · ${TYPES[r.p.type]} · до ${r.p.date?r.p.date.slice(8)+'.'+r.p.date.slice(5,7):''} ${r.p.time}</div></div>
+      ${late?`<span class="pill st-late">Просрочено</span>`:""}</div>`;
+  };
+  let html=bannerHtml()+`<div class="tlist"><div class="who" style="margin-bottom:2px">Сегодня и просроченные (${todays.length})</div>`;
+  html+= todays.length? todays.map(row).join(""): `<div class="empty">На сегодня задач нет 🎉</div>`;
+  if(upcoming.length){ html+=`<div class="who" style="margin:14px 0 2px">Дальше (${upcoming.length})</div>`+upcoming.map(row).join(""); }
+  html+=`</div>`;
+  $("#content").innerHTML=html;
+  $("#content").querySelectorAll("[data-toggle]").forEach(cb=>cb.onclick=e=>{
+    e.stopPropagation();
+    const [pid,idx]=cb.dataset.toggle.split(":");
+    const p=db.posts.find(x=>x.id===pid); p.tasks[+idx].done=!p.tasks[+idx].done; savePost(p); render();
+  });
+  $("#content").querySelectorAll(".trow").forEach(r=>r.onclick=()=>openDrawer(r.dataset.id));
+}
+
+function renderShoots(){
+  const shoots=db.shoots.filter(s=>state.client==="all"||s.client===state.client).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  let html=bannerHtml();
+  if(!shoots.length) html+=`<div class="empty">Съёмок не запланировано.<br>Нажмите «+ Съёмка» вверху.</div>`;
+  shoots.forEach(s=>{
+    const cli=clientById(s.client), upcoming=(s.date||"")>=todayStr();
+    html+=`<div class="shoot" data-id="${s.id}" style="cursor:pointer;${upcoming?'':'opacity:.6'}">
+      <div class="date"><div class="day">${s.date?s.date.slice(8):'—'}</div><div class="mon">${s.date?MONTHS[+s.date.slice(5,7)-1].slice(0,3):''}</div></div>
+      <div style="flex:1"><div style="font-weight:650">${s.title||'Без названия'}</div>
+      <div class="who" style="margin:4px 0"><span class="swatch" style="display:inline-block;background:${cli.color}"></span> ${cli.name} · ${s.time} · ${s.place||'место не указано'}</div>
+      <div style="color:var(--muted);font-size:13px">${s.note||''}</div></div></div>`;
+  });
+  $("#content").innerHTML=html;
+  $("#content").querySelectorAll(".shoot").forEach(el=>el.onclick=()=>openShoot(el.dataset.id));
+}
+
+/* ===== Drawer: posts ===== */
+function uid(pfx){ return pfx+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function openDrawer(id, presetDate){
+  let p;
+  if(id){ p=db.posts.find(x=>x.id===id); }
+  else {
+    p={id:uid("p"),client:(state.client!=="all"?state.client:(db.clients[0]&&db.clients[0].id)),type:"post",title:"",date:presetDate||todayStr(),time:"12:00",status:"plan",text:"",tasks:[],files:[]};
+    db.posts.push(p); savePost(p);
+  }
+  state.editing=p; state.editKind="post";
+  $("#dTitle").value=p.title; $("#dTitle").placeholder="Название публикации";
+  $("#dBody").innerHTML=drawerBody(p); bindDrawer(p);
+  $("#overlay").classList.add("open"); $("#drawer").classList.add("open");
+}
+function drawerBody(p){
+  const clientOpts=db.clients.map(c=>`<option value="${c.id}" ${p.client===c.id?"selected":""}>${c.name}</option>`).join("");
+  const typeOpts=Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${p.type===k?"selected":""}>${v}</option>`).join("");
+  const statOpts=Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${p.status===k?"selected":""}>${v.label}</option>`).join("");
+  const tasksHtml=p.tasks.map((t,i)=>`
+    <div class="subtask ${t.done?"done":""}"><div class="cb" data-st="${i}">${t.done?"✓":""}</div>
+      <input class="nm" data-stname="${i}" value="${(t.n||'').replace(/"/g,'&quot;')}" style="background:transparent;border:0;color:inherit;flex:1;font:inherit">
+      <select data-strole="${i}" style="background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:6px;font-size:11px;padding:2px">
+        ${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${t.r===k?"selected":""}>${v.name}</option>`).join("")}
+      </select><button data-strm="${i}" style="background:transparent;border:0;color:var(--muted);font-size:15px">✕</button></div>`).join("");
+  const filesHtml=p.files.map((f,i)=>`
+    <div class="file"><div class="ico">${f.t==="img"?"🖼️":f.t==="vid"?"🎞️":"📄"}</div>
+      <span class="nm ${f.path?'link':''}" data-fopen="${i}">${f.n}</span>
+      <button class="rm" data-frm="${i}">✕</button></div>`).join("") || `<div class="who">Файлы не прикреплены</div>`;
+  return `
+    <div class="row2"><div class="fld"><label>Клиент</label><select id="fClient">${clientOpts}</select></div>
+      <div class="fld"><label>Формат</label><select id="fType">${typeOpts}</select></div></div>
+    <div class="row2"><div class="fld"><label>Дата публикации</label><input type="date" id="fDate" value="${p.date||''}"></div>
+      <div class="fld"><label>Время</label><input type="time" id="fTime" value="${p.time||''}"></div></div>
+    <div class="fld"><label>Статус</label><select id="fStatus">${statOpts}</select></div>
+    <div class="fld"><label>Текст / подпись для выкладки</label><textarea id="fText" placeholder="Готовый текст поста, хук рилса, текст историй…">${p.text||""}</textarea></div>
+    <div class="fld"><label>Задачи по ролям</label><div>${tasksHtml||'<div class="who">Задач пока нет</div>'}</div>
+      <button class="btn ghost" id="addTask" style="width:100%;margin-top:4px">+ Добавить задачу</button></div>
+    <div class="fld"><label>Файлы (обложки, тексты, видео)</label><div class="files">${filesHtml}</div>
+      <button class="btn ghost" id="addFile" style="width:100%;margin-top:8px">📎 Прикрепить файл</button></div>`;
+}
+function bindDrawer(p){
+  const rebuild=()=>{$("#dBody").innerHTML=drawerBody(p);bindDrawer(p);};
+  $("#dTitle").oninput=()=>{p.title=$("#dTitle").value;savePost(p);};
+  $("#fClient").onchange=()=>{p.client=$("#fClient").value;savePost(p);};
+  $("#fType").onchange=()=>{p.type=$("#fType").value;savePost(p);};
+  $("#fDate").onchange=()=>{p.date=$("#fDate").value;savePost(p);};
+  $("#fTime").onchange=()=>{p.time=$("#fTime").value;savePost(p);};
+  $("#fStatus").onchange=()=>{p.status=$("#fStatus").value;savePost(p);};
+  $("#fText").oninput=()=>{p.text=$("#fText").value;savePost(p);};
+  $("#dBody").querySelectorAll("[data-st]").forEach(cb=>cb.onclick=()=>{const i=+cb.dataset.st;p.tasks[i].done=!p.tasks[i].done;savePost(p);rebuild();});
+  $("#dBody").querySelectorAll("[data-stname]").forEach(inp=>inp.oninput=()=>{p.tasks[+inp.dataset.stname].n=inp.value;savePost(p);});
+  $("#dBody").querySelectorAll("[data-strole]").forEach(sel=>sel.onchange=()=>{p.tasks[+sel.dataset.strole].r=sel.value;savePost(p);});
+  $("#dBody").querySelectorAll("[data-strm]").forEach(b=>b.onclick=()=>{p.tasks.splice(+b.dataset.strm,1);savePost(p);rebuild();});
+  $("#addTask").onclick=()=>{p.tasks.push({r:"partner",n:"Новая задача",done:false});savePost(p);rebuild();};
+  $("#dBody").querySelectorAll("[data-frm]").forEach(b=>b.onclick=()=>{p.files.splice(+b.dataset.frm,1);savePost(p);rebuild();});
+  $("#dBody").querySelectorAll("[data-fopen]").forEach(el=>el.onclick=async()=>{
+    const f=p.files[+el.dataset.fopen]; if(!f.path)return;
+    const {data,error}=await sb.storage.from('media').createSignedUrl(f.path,3600);
+    if(data&&data.signedUrl) window.open(data.signedUrl,'_blank');
+  });
+  $("#addFile").onclick=()=>{ pendingFilePost=p; $("#fileInput").value=""; $("#fileInput").click(); };
+  $("#dDelete").onclick=()=>{ if(confirm("Удалить публикацию?")){ const i=db.posts.findIndex(x=>x.id===p.id); if(i>=0)db.posts.splice(i,1); delPost(p.id);} closeDrawer(); };
+}
+
+/* ===== File upload ===== */
+let pendingFilePost=null;
+$("#fileInput").onchange=async e=>{
+  const file=e.target.files[0]; if(!file||!pendingFilePost)return;
+  const p=pendingFilePost;
+  const ext=file.name.split(".").pop().toLowerCase();
+  const t=["png","jpg","jpeg","webp","gif"].includes(ext)?"img":["mp4","mov","webm"].includes(ext)?"vid":"txt";
+  const path=`${p.id}/${Date.now()}_${file.name}`;
+  const {error}=await sb.storage.from('media').upload(path,file,{upsert:true});
+  if(error){ alert("Не удалось загрузить файл: "+error.message); return; }
+  p.files.push({n:file.name,path,t}); await savePost(p);
+  if(state.editing&&state.editing.id===p.id){ $("#dBody").innerHTML=drawerBody(p); bindDrawer(p); }
+};
+
+function closeDrawer(){
+  const o=state.editing;
+  if(o){
+    if(state.editKind==="client"){
+      if(!(o.name||"").trim()){ const i=db.clients.findIndex(x=>x.id===o.id); if(i>=0)db.clients.splice(i,1); delClient(o.id); if(state.client===o.id)state.client="all"; }
+    } else if(state.editKind==="post"){ if(!(o.title||"").trim()){ o.title="Без названия"; savePost(o);} }
+    else if(state.editKind==="shoot"){ if(!(o.title||"").trim()){ o.title="Без названия"; saveShoot(o);} }
+  }
+  $("#overlay").classList.remove("open");$("#drawer").classList.remove("open");
+  state.editing=null;state.editKind=null;render();
+}
+
+/* ===== Drawer: clients ===== */
+function openClient(id){
+  let c;
+  if(id){ c=db.clients.find(x=>x.id===id); }
+  else { c={id:uid("c"),name:"",color:"#6c8cff",note:""}; db.clients.push(c); saveClient(c); }
+  state.editing=c; state.editKind="client";
+  $("#dTitle").value=c.name; $("#dTitle").placeholder="Название компании";
+  $("#dBody").innerHTML=clientBody(c); bindClient(c);
+  $("#overlay").classList.add("open"); $("#drawer").classList.add("open");
+}
+function clientBody(c){
+  const presets=['#6c8cff','#3ecf8e','#ffba49','#ff5d6c','#8a6cff','#4cb4ff','#ff8a5d','#5dd3c0'];
+  return `<div class="fld"><label>Название компании</label><div class="who">Редактируется в поле сверху ↑</div></div>
+    <div class="fld"><label>Цвет метки</label><input type="color" id="cColor" value="${c.color}" style="height:42px;padding:4px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        ${presets.map(p=>`<button class="cpreset" data-col="${p}" style="width:28px;height:28px;border-radius:50%;border:2px solid ${(c.color||'').toLowerCase()===p?'#fff':'transparent'};background:${p};cursor:pointer"></button>`).join("")}
+      </div></div>
+    <div class="fld"><label>Заметка</label><textarea id="cNote" placeholder="Ниша, контакты, ссылки на аккаунты…">${c.note||""}</textarea></div>`;
+}
+function bindClient(c){
+  const rebuild=()=>{$("#dBody").innerHTML=clientBody(c);bindClient(c);};
+  $("#dTitle").oninput=()=>{c.name=$("#dTitle").value;saveClient(c);};
+  $("#cColor").oninput=()=>{c.color=$("#cColor").value;saveClient(c);rebuild();};
+  $("#dBody").querySelectorAll(".cpreset").forEach(b=>b.onclick=()=>{c.color=b.dataset.col;saveClient(c);rebuild();});
+  $("#cNote").oninput=()=>{c.note=$("#cNote").value;saveClient(c);};
+  $("#dDelete").onclick=()=>{
+    const used=db.posts.some(p=>p.client===c.id)||db.shoots.some(s=>s.client===c.id);
+    if(used){ if(!confirm("У клиента есть публикации/съёмки. Всё равно удалить?")) return; }
+    else if(!confirm("Удалить клиента?")) return;
+    const i=db.clients.findIndex(x=>x.id===c.id); if(i>=0)db.clients.splice(i,1); delClient(c.id);
+    if(state.client===c.id)state.client="all"; closeDrawer();
+  };
+}
+
+/* ===== Drawer: shoots ===== */
+function openShoot(id){
+  let s;
+  if(id){ s=db.shoots.find(x=>x.id===id); }
+  else { s={id:uid("s"),client:(state.client!=="all"?state.client:(db.clients[0]&&db.clients[0].id)),title:"",date:todayStr(),time:"10:00",place:"",note:""}; db.shoots.push(s); saveShoot(s); }
+  state.editing=s; state.editKind="shoot";
+  $("#dTitle").value=s.title; $("#dTitle").placeholder="Название съёмки";
+  $("#dBody").innerHTML=shootBody(s); bindShoot(s);
+  $("#overlay").classList.add("open"); $("#drawer").classList.add("open");
+}
+function shootBody(s){
+  const clientOpts=db.clients.map(c=>`<option value="${c.id}" ${s.client===c.id?"selected":""}>${c.name}</option>`).join("");
+  return `<div class="fld"><label>Клиент</label><select id="sClient">${clientOpts}</select></div>
+    <div class="row2"><div class="fld"><label>Дата съёмки</label><input type="date" id="sDate" value="${s.date||''}"></div>
+      <div class="fld"><label>Время</label><input type="time" id="sTime" value="${s.time||''}"></div></div>
+    <div class="fld"><label>Место</label><input type="text" id="sPlace" value="${(s.place||'').replace(/"/g,'&quot;')}" placeholder="Адрес, локация, студия…"></div>
+    <div class="fld"><label>Что снимаем</label><textarea id="sNote" placeholder="Список рилсов, реквизит, кто участвует…">${s.note||""}</textarea></div>`;
+}
+function bindShoot(s){
+  $("#dTitle").oninput=()=>{s.title=$("#dTitle").value;saveShoot(s);};
+  $("#sClient").onchange=()=>{s.client=$("#sClient").value;saveShoot(s);};
+  $("#sDate").onchange=()=>{s.date=$("#sDate").value;saveShoot(s);};
+  $("#sTime").onchange=()=>{s.time=$("#sTime").value;saveShoot(s);};
+  $("#sPlace").oninput=()=>{s.place=$("#sPlace").value;saveShoot(s);};
+  $("#sNote").oninput=()=>{s.note=$("#sNote").value;saveShoot(s);};
+  $("#dDelete").onclick=()=>{ if(confirm("Удалить съёмку?")){ const i=db.shoots.findIndex(x=>x.id===s.id); if(i>=0)db.shoots.splice(i,1); delShoot(s.id);} closeDrawer(); };
+}
+
+/* ===== Wire up app ===== */
+$("#overlay").onclick=closeDrawer;
+$("#dClose").onclick=closeDrawer;
+$("#dDone").onclick=closeDrawer;
+$("#addBtn").onclick=()=>{
+  if(!db.clients.length){ alert("Сначала добавьте клиента в панели слева."); return; }
+  state.view==="shoots" ? openShoot(null) : openDrawer(null);
+};
+$("#prevM").onclick=()=>{state.calDate=new Date(state.calDate.getFullYear(),state.calDate.getMonth()-1,1);renderCalendar();};
+$("#nextM").onclick=()=>{state.calDate=new Date(state.calDate.getFullYear(),state.calDate.getMonth()+1,1);renderCalendar();};
+$("#curM").onclick=()=>{state.calDate=new Date();renderCalendar();};
+$("#logoutLink").onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
+
+/* ===== Auth ===== */
+let realtimeStarted=false;
+function startRealtime(){
+  if(realtimeStarted)return; realtimeStarted=true;
+  sb.channel('public-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'clients'},scheduleReload)
+    .on('postgres_changes',{event:'*',schema:'public',table:'posts'},scheduleReload)
+    .on('postgres_changes',{event:'*',schema:'public',table:'shoots'},scheduleReload)
+    .subscribe();
+}
+async function showApp(user){
+  $("#login").classList.add("hidden");
+  $("#appRoot").classList.remove("hidden");
+  $("#whoami").textContent="Вы вошли как "+(user.email||"");
+  await loadAll();
+  startRealtime();
+}
+function showLogin(){
+  $("#appRoot").classList.add("hidden");
+  $("#login").classList.remove("hidden");
+}
+$("#loginBtn").onclick=async()=>{
+  const email=$("#loginEmail").value.trim();
+  const msg=$("#loginMsg"); msg.className="msg";
+  if(!email){ msg.className="msg err"; msg.textContent="Введите email"; return; }
+  $("#loginBtn").disabled=true; msg.textContent="Отправляем ссылку…";
+  const {error}=await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.href } });
+  $("#loginBtn").disabled=false;
+  if(error){ msg.className="msg err"; msg.textContent="Ошибка: "+error.message; }
+  else { msg.className="msg"; msg.textContent="Готово! Проверьте почту (и «Спам») и откройте ссылку для входа."; }
+};
+$("#loginEmail").onkeydown=e=>{ if(e.key==="Enter")$("#loginBtn").click(); };
+
+async function init(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session) showApp(session.user); else showLogin();
+  sb.auth.onAuthStateChange((_e,sess)=>{ if(sess) showApp(sess.user); else showLogin(); });
+}
+init();
+</script>
+</body>
+</html>
